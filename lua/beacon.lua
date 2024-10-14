@@ -10,6 +10,7 @@ local M = {}
 ---@field cursor_events table<string> what events trigger check for cursor moves (default: {'CursorMoved'})
 ---@field window_events table<string> what events trigger cursor highlight (default: {'WinEnter', 'FocusGained'})
 ---@field highlight vim.api.keyset.highlight table passed to vim.api.nvim_set_hl (default: {bg = 'white'})
+---@field beacon_ignore_filetypes table<string> table of filetype strings to ignore (default: {})
 local default_config = {
   enabled = true,
   speed = 2,
@@ -20,15 +21,15 @@ local default_config = {
   cursor_events = { 'CursorMoved' },
   window_events = { 'WinEnter', 'FocusGained' },
   highlight = { bg = 'white', ctermbg = 15, default = true },
+  beacon_ignore_filetypes = {}, -- https://github.com/DanilaMihailov/beacon.nvim/issues/26
 }
-
--- weird behaviour in oil window
-local ignore_fts = { 'oil' }
 
 ---@type beacon.DefaultConfig
 M.config = {}
 
 local fake_buffer = vim.api.nvim_create_buf(false, true)
+-- Set a custom filetype so users can target this buffer.
+vim.api.nvim_set_option_value('filetype', 'beacon', { buf = fake_buffer })
 
 ---@package
 ---Creates small floating window
@@ -59,7 +60,7 @@ function M.highlight_cursor()
     return
   end
 
-  if vim.list_contains(ignore_fts, vim.bo.ft) then
+  if vim.list_contains(cfg.beacon_ignore_filetypes, vim.bo.ft) then
     return
   end
 
