@@ -27,15 +27,25 @@ local default_config = {
 ---@type beacon.DefaultConfig
 M.config = {}
 
-local fake_buffer = vim.api.nvim_create_buf(false, true)
--- Set a custom filetype so users can target this buffer.
-vim.api.nvim_set_option_value('filetype', 'beacon', { buf = fake_buffer })
+local function create_fake_buffer()
+  local fake_buffer = vim.api.nvim_create_buf(false, true)
+  -- Set a custom filetype so users can target this buffer.
+  vim.api.nvim_set_option_value('filetype', 'beacon', { buf = fake_buffer })
+  return fake_buffer
+end
+
+local fake_buffer = create_fake_buffer()
 
 ---@package
 ---Creates small floating window
 ---@param cfg beacon.DefaultConfig
 ---@return integer window window number
 local function create_window(cfg)
+  -- If the fake buffer go closed, recreate it
+  if not vim.api.nvim_buf_is_valid(fake_buffer) then
+    fake_buffer = create_fake_buffer()
+  end
+
   local window = vim.api.nvim_open_win(fake_buffer, false, {
     relative = 'cursor',
     row = 0,
